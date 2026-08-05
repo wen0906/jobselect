@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}岗位筛选 - 岗位智能筛选可视化管理系统 V1.0{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/list.css') }}">
+{% endblock %}
+{% block body %}
+<div class="topbar">
+  <div class="logo">岗位智能筛选可视化管理系统<span class="v">V1.0</span></div>
+  <div class="nav">
+    <a href="/dashboard">可视化大屏</a>
+    <a href="/jobs" class="active">岗位筛选</a>
+    {% if current_user and current_user.role == 'admin' %}<a href="/admin">后台管理</a>{% endif %}
+  </div>
+  <div class="user">
+    <span>{{ current_user.username }}</span>
+    <span class="role">{{ role_name(current_user.role) }}</span>
+    <a class="logout" href="/logout">退出</a>
+  </div>
+</div>
+
+<div class="container">
+  <!-- 筛选条件 -->
+  <div class="card">
+    <div class="card-title">智能复合筛选（多条件 AND 联合匹配，结果与图表实时联动）</div>
+    <div class="form-row" id="filterBar">
+      <div class="form-item">
+        <label>地区</label>
+        <select id="f_region">
+          <option value="all">全部</option>
+          {% for r in REGIONS %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>爱心岗位</label>
+        <select id="f_caring">
+          <option value="all">全部</option>
+          <option value="1">仅爱心岗</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label>学历（可胜任）</label>
+        <select id="f_edu">
+          <option value="0">不限</option>
+          {% for e in EDU_OPTIONS %}{% if e != '不限' %}<option value="{{ edu_level(e) }}">{{ e }}及以上</option>{% endif %}{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>最低月薪</label>
+        <input type="number" id="f_salary" placeholder="元" min="0">
+      </div>
+      <div class="form-item">
+        <label>行业</label>
+        <select id="f_industry">
+          <option value="all">全部</option>
+          {% for i in INDUSTRY_OPTIONS %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>班次</label>
+        <select id="f_shift">
+          <option value="all">全部</option>
+          {% for s in SHIFT_OPTIONS %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>福利标签</label>
+        <select id="f_label">
+          <option value="all">全部</option>
+          {% for w in WELFARE_KEYWORDS %}<option value="{{ w }}">{{ w }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>持证优先</label>
+        <select id="f_cert">
+          <option value="all">全部</option>
+          <option value="1">仅持证优先</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label>关键词</label>
+        <input type="text" id="f_keyword" placeholder="岗位/企业">
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:6px;align-items:flex-end">
+        <button class="btn btn-primary" onclick="loadJobs(1)">查询</button>
+        <button class="btn btn-default" onclick="resetFilters()">重置</button>
+        {% if current_user and current_user.role in ('admin','staff') %}
+        <button class="btn btn-success" onclick="exportExcel()">导出报表</button>
+        <button class="btn btn-warning" onclick="exportContacts()">导出联系人</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 联动统计 -->
+  <div class="metric-grid">
+    <div class="metric blue"><div class="label">匹配岗位</div><div class="value" id="m_total">0<span class="unit">个</span></div></div>
+    <div class="metric orange"><div class="label">爱心岗位</div><div class="value" id="m_caring">0<span class="unit">个</span></div></div>
+    <div class="metric green"><div class="label">高薪岗(8k+)</div><div class="value" id="m_high">0<span class="unit">个</span></div></div>
+    <div class="metric purple"><div class="label">包食宿</div><div class="value" id="m_food">0<span class="unit">个</span></div></div>
+  </div>
+
+  <!-- 岗位卡片列表 -->
+  <div class="card">
+    <div class="card-title">岗位列表 <span id="result_count" style="font-size:13px;color:#94a3b8;font-weight:normal"></span></div>
+    <div class="job-grid" id="jobGrid">
+      <div style="text-align:center;color:#94a3b8;padding:40px">加载中...</div>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>window.__USER_ROLE__ = "{{ current_user.role }}";</script>
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/list.js') }}"></script>
+{% endblock %}

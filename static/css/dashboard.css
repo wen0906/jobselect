@@ -1,0 +1,19 @@
+/* 可视化大屏样式 */
+.checkbox-inline{display:flex;align-items:center;gap:6px;font-size:13px;color:#475569;cursor:pointer;padding:7px 0}
+.checkbox-inline input{cursor:pointer;width:15px;height:15px;accent-color:#3b82f6}
+.form-row .btn{margin-right:6px}
+
+/* 大屏背景增强 */
+.metric .icon{font-size:38px}
+.metric .value .unit{font-size:14px}
+.chart-box{transition:box-shadow .2s}
+.chart-box:hover{box-shadow:0 4px 14px rgba(0,0,0,.1)}
+
+/* 大屏标题动画 */
+.card-title{position:relative}
+.metric{position:relative}
+.metric::after{content:"";position:absolute;left:0;top:0;width:4px;height:100%;border-radius:10px 0 0 10px}
+.metric.blue::after{background:var(--primary)}
+.metric.green::after{background:var(--success)}
+.metric.orange::after{background:var(--warning)}
+.metric.purple::after{background:var(--purple)}

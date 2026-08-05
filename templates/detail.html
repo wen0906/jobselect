@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ job.job_name }} - 岗位详情{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/detail.css') }}">
+{% endblock %}
+{% block body %}
+<div class="topbar">
+  <div class="logo">岗位智能筛选可视化管理系统<span class="v">V1.0</span></div>
+  <div class="nav">
+    <a href="/dashboard">可视化大屏</a>
+    <a href="/jobs" class="active">岗位筛选</a>
+    {% if current_user and current_user.role == 'admin' %}<a href="/admin">后台管理</a>{% endif %}
+  </div>
+  <div class="user">
+    <span>{{ current_user.username }}</span>
+    <span class="role">{{ role_name(current_user.role) }}</span>
+    <a class="logout" href="/logout">退出</a>
+  </div>
+</div>
+
+<div class="container">
+  <a href="/jobs" class="back-link">← 返回岗位列表</a>
+  <div class="detail-card">
+    <div class="detail-head">
+      <div class="head-top">
+        <span class="region-tag">{{ job.region }}</span>
+        {% if job.is_caring %}<span class="caring-badge">♥ 爱心帮扶岗位</span>{% endif %}
+        {% if job.has_cert_priority %}<span class="cert-badge">持证优先</span>{% endif %}
+      </div>
+      <h1>{{ job.job_name }}</h1>
+      <div class="company">{{ job.company }}</div>
+      <div class="salary">{{ job.salary_text }} <small>/ 月</small></div>
+    </div>
+    <div class="detail-body">
+      <div class="info-grid">
+        <div class="info-item"><div class="k">招聘人数</div><div class="v">{{ job.recruit_num }} 人</div></div>
+        <div class="info-item"><div class="k">学历要求</div><div class="v">{{ job.education }}</div></div>
+        <div class="info-item"><div class="k">所属行业</div><div class="v">{{ job.industry }}</div></div>
+        <div class="info-item"><div class="k">工作班次</div><div class="v">{{ job.shift }}</div></div>
+        <div class="info-item"><div class="k">持证要求</div><div class="v">{{ job.cert_text if job.cert_text else ('持证优先' if job.has_cert_priority else '无要求') }}</div></div>
+        <div class="info-item"><div class="k">岗位状态</div><div class="v">{{ '招聘中' if job.status=='active' else '已下架' }}</div></div>
+      </div>
+
+      <div class="section">
+        <h3>福利待遇标签</h3>
+        <div class="labels">
+          {% if job.labels %}{% for l in job.labels %}<span class="tag tag-welfare">{{ l }}</span>{% endfor %}
+          {% else %}<span style="color:#94a3b8">无</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>岗位职责</h3>
+        <p class="duty">{{ job.job_duty or '—' }}</p>
+      </div>
+
+      <div class="section">
+        <h3>福利待遇原文</h3>
+        <p class="duty">{{ job.welfare_text or '—' }}</p>
+      </div>
+
+      <div class="contact-box">
+        <div class="contact-title">意向求职者请联系</div>
+        <div class="contact-phone">📞 {{ job.phone or '—' }}</div>
+        <div class="contact-person">联系人：{{ job.contact or '—' }}</div>
+        <div class="contact-company">{{ job.company }}</div>
+      </div>
+    </div>
+    <div class="detail-foot">
+      <div class="actions">
+        <button class="btn btn-primary" onclick="window.print()">🖨 打印本页</button>
+        <button class="btn btn-success" onclick="genDetailPage()">📱 生成独立详情页(转发)</button>
+        {% if current_user and current_user.role in ('admin','staff') %}
+        <button class="btn btn-warning" onclick="exportOne()">📊 导出该岗位到Excel</button>
+        {% endif %}
+      </div>
+      <div class="meta">岗位ID：{{ job.id }}  ·  录入时间：{{ job.create_time }}  ·  岗位智能筛选可视化管理系统 V1.0</div>
+    </div>
+  </div>
+</div>
+<div id="detailModal" class="modal-mask">
+  <div class="modal">
+    <h3>独立详情页已生成</h3>
+    <p style="margin-bottom:12px;color:#475569">已为该岗位生成可独立访问的静态 HTML 详情页，适合微信转发、手机浏览、线下打印招工材料。</p>
+    <div id="detailUrlBox" style="background:#f1f5f9;padding:12px;border-radius:6px;word-break:break-all;font-size:13px;margin-bottom:12px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="document.getElementById('detailModal').classList.remove('show')">关闭</button>
+      <a id="detailOpenBtn" class="btn btn-primary" target="_blank">打开详情页</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+<script>window.__USER_ROLE__ = "{{ current_user.role }}"; window.__JOB_ID__ = {{ job.id }};</script>
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/detail.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,15 @@
+/* 后台管理样式 */
+.tabs{display:flex;gap:6px;margin-bottom:16px;background:#fff;padding:8px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow-x:auto}
+.tab{padding:8px 18px;background:transparent;border-radius:6px;font-size:14px;color:#64748b;white-space:nowrap}
+.tab.active{background:var(--primary);color:#fff;font-weight:500}
+.tab:hover:not(.active){background:#f1f5f9}
+.upload-box{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.upload-box input[type=file]{flex:1;min-width:240px;padding:8px;border:1px dashed var(--border);border-radius:6px;background:#f8fafc}
+.edit-form .form-item{flex:1;min-width:200px}
+.status-active{color:var(--success);font-weight:500}
+.status-archived{color:var(--text-light)}
+.row-caring{background:#fffbeb!important}
+.import-success{background:#ecfdf5;color:#065f46;padding:12px;border-radius:6px;border:1px solid #a7f3d0}
+.import-skip{background:#fef3c7;color:#92400e;padding:8px 12px;border-radius:6px;margin-top:8px}
+.import-error{background:#fef2f2;color:#991b1b;padding:8px 12px;border-radius:6px;margin-top:6px;font-size:12px}
+table.data td .op-btn{padding:2px 8px;font-size:12px;margin-right:4px}

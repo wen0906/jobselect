@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}登录 - 岗位智能筛选可视化管理系统 V1.0{% endblock %}
+{% block head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">{% endblock %}
+{% block body %}
+<div class="login-wrap">
+  <div class="login-bg"></div>
+  <div class="login-box">
+    <div class="login-header">
+      <div class="logo-icon">岗</div>
+      <h1>岗位智能筛选可视化管理系统</h1>
+      <p class="version">V1.0  ·  东西部劳务协作就业服务平台</p>
+    </div>
+    <form method="post" class="login-form">
+      {% if error %}<div class="login-error">{{ error }}</div>{% endif %}
+      <div class="form-group">
+        <label>账号</label>
+        <input type="text" name="username" placeholder="请输入登录账号" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" name="password" placeholder="请输入密码" required>
+      </div>
+      <button type="submit" class="btn-login">登 录</button>
+    </form>
+    <div class="quick-login">
+      <p>—— 演示快捷登录（点击角色一键进入） ——</p>
+      <div class="role-btns">
+        <a href="/auth/login_quick?role=admin" class="role-btn admin">管理员<br><small>全功能权限</small></a>
+        <a href="/auth/login_quick?role=staff" class="role-btn staff">就业专员<br><small>筛选/导出</small></a>
+        <a href="/auth/login_quick?role=visitor" class="role-btn visitor">访客<br><small>仅浏览</small></a>
+      </div>
+    </div>
+    <div class="login-footer">
+      开发单位：XXX  ·  开发完成日期：2026年08月05日  ·  独立自主开发
+    </div>
+  </div>
+</div>
+{% endblock %}

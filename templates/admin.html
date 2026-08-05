@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}后台管理 - 岗位智能筛选可视化管理系统 V1.0{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+{% block body %}
+<div class="topbar">
+  <div class="logo">岗位智能筛选可视化管理系统<span class="v">V1.0</span></div>
+  <div class="nav">
+    <a href="/dashboard">可视化大屏</a>
+    <a href="/jobs">岗位筛选</a>
+    <a href="/admin" class="active">后台管理</a>
+  </div>
+  <div class="user">
+    <span>{{ current_user.username }}</span>
+    <span class="role">{{ role_name(current_user.role) }}</span>
+    <a class="logout" href="/logout">退出</a>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Tab 切换 -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('jobs')">岗位数据管理</button>
+    <button class="tab" onclick="switchTab('import')">Excel 导入</button>
+    <button class="tab" onclick="switchTab('archive')">归档与备份</button>
+    <button class="tab" onclick="switchTab('users')">用户管理</button>
+    <button class="tab" onclick="switchTab('logs')">操作日志</button>
+  </div>
+
+  <!-- 岗位数据管理 -->
+  <div class="tab-panel" id="tab_jobs">
+    <div class="card">
+      <div class="card-title">岗位列表
+        <span style="font-size:13px;color:#94a3b8;font-weight:normal" id="jobs_count"></span>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openEditModal()">+ 新增岗位</button>
+        <input type="text" id="jobs_keyword" placeholder="搜索企业/岗位/地区" style="margin-left:10px;padding:6px 10px;border:1px solid var(--border);border-radius:6px" onkeydown="if(event.key==='Enter')loadAdminJobs(1)">
+        <button class="btn btn-default btn-sm" onclick="loadAdminJobs(1)">搜索</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data" id="jobsTable">
+          <thead><tr><th>ID</th><th>地区</th><th>企业</th><th>岗位</th><th>人数</th><th>薪资</th><th>学历</th><th>行业</th><th>爱心</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="jobs_pagination"></div>
+    </div>
+  </div>
+
+  <!-- Excel 导入 -->
+  <div class="tab-panel" id="tab_import" style="display:none">
+    <div class="card">
+      <div class="card-title">Excel 批量导入（自研文本解析与清洗）</div>
+      <p style="margin-bottom:14px;color:#475568">支持杭州、惠州两地岗位 Excel 台账上传，系统自动完成薪资/学历/福利标签清洗、爱心岗位识别、两地分区标识。</p>
+      <div class="upload-box">
+        <input type="file" id="excelFile" accept=".xlsx,.xls">
+        <button class="btn btn-primary" onclick="uploadExcel()">上传并解析</button>
+        <button class="btn btn-success" onclick="downloadTemplate()">下载导入模板</button>
+      </div>
+      <div id="importResult" style="margin-top:16px"></div>
+      <div class="card" style="background:#f8fafc;margin-top:16px">
+        <div style="font-weight:bold;margin-bottom:8px">Excel 表头要求（首行命名）：</div>
+        <div style="font-size:13px;color:#475569;line-height:1.8">
+          企业名称、联系人、联系电话、岗位名称、招聘人数、薪资、学历要求、地区、行业、班次、岗位职责、福利待遇、备注
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 归档与备份 -->
+  <div class="tab-panel" id="tab_archive" style="display:none">
+    <div class="card">
+      <div class="card-title">按月归档与数据备份恢复</div>
+      <div class="form-row" style="margin-bottom:14px">
+        <div class="form-item">
+          <label>归档月份</label>
+          <input type="month" id="archiveMonth">
+        </div>
+        <div class="form-item" style="flex-direction:row;align-items:flex-end">
+          <button class="btn btn-primary" onclick="createArchive()">生成归档快照</button>
+        </div>
+      </div>
+      <table class="data">
+        <thead><tr><th>归档ID</th><th>归档月份</th><th>备份时间</th><th>操作</th></tr></thead>
+        <tbody id="archiveList"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 用户管理 -->
+  <div class="tab-panel" id="tab_users" style="display:none">
+    <div class="card">
+      <div class="card-title">系统用户列表</div>
+      <table class="data">
+        <thead><tr><th>ID</th><th>账号</th><th>角色</th><th>创建时间</th></tr></thead>
+        <tbody id="userList"></tbody>
+      </table>
+      <div class="card" style="background:#f8fafc;margin-top:14px;font-size:13px;color:#475569">
+        <b>权限说明：</b><br>
+        管理员(admin)：全部功能，可导入/删除/备份岗位数据<br>
+        就业专员(staff)：筛选、可视化查看、导出报表，不可修改源数据<br>
+        访客(visitor)：仅浏览查询，无导出/编辑/删除权限
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作日志 -->
+  <div class="tab-panel" id="tab_logs" style="display:none">
+    <div class="card">
+      <div class="card-title">操作日志（最近 200 条）</div>
+      <table class="data">
+        <thead><tr><th>时间</th><th>操作人</th><th>操作类型</th><th>详情</th></tr></thead>
+        <tbody id="logList"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/编辑岗位弹窗 -->
+<div class="modal-mask" id="editModal">
+  <div class="modal">
+    <h3 id="editModalTitle">新增岗位</h3>
+    <div class="edit-form">
+      <input type="hidden" id="j_id">
+      <div class="form-row">
+        <div class="form-item"><label>企业名称*</label><input id="j_company"></div>
+        <div class="form-item"><label>岗位名称*</label><input id="j_job_name"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item"><label>联系人</label><input id="j_contact"></div>
+        <div class="form-item"><label>联系电话</label><input id="j_phone"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item"><label>招聘人数</label><input type="number" id="j_recruit_num" value="0"></div>
+        <div class="form-item"><label>薪资（文本）</label><input id="j_salary" placeholder="如 5000-7000"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item"><label>学历要求</label><input id="j_education" placeholder="如 初中/不限"></div>
+        <div class="form-item"><label>地区</label>
+          <select id="j_region">
+            {% for r in REGIONS %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-item"><label>行业</label>
+          <select id="j_industry">{% for i in INDUSTRY_OPTIONS %}<option value="{{ i }}">{{ i }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-item"><label>班次</label>
+          <select id="j_shift">{% for s in SHIFT_OPTIONS %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select>
+        </div>
+      </div>
+      <div class="form-item" style="margin-top:10px"><label>岗位职责</label><textarea id="j_duty" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px"></textarea></div>
+      <div class="form-item" style="margin-top:10px"><label>福利待遇原文（系统自动拆分标签）</label><textarea id="j_welfare" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px" placeholder="如 五险一金、包吃住、双休"></textarea></div>
+      <div class="form-row" style="margin-top:10px;align-items:center">
+        <label class="checkbox-inline"><input type="checkbox" id="j_caring"> 标记为爱心帮扶岗位</label>
+        <label class="checkbox-inline"><input type="checkbox" id="j_cert"> 持证优先</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="document.getElementById('editModal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" onclick="saveJob()">保存</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

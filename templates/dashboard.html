@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}可视化大屏 - 岗位智能筛选可视化管理系统 V1.0{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+{% block body %}
+<div class="topbar">
+  <div class="logo">岗位智能筛选可视化管理系统<span class="v">V1.0</span></div>
+  <div class="nav">
+    <a href="/dashboard" class="active">可视化大屏</a>
+    <a href="/jobs">岗位筛选</a>
+    {% if current_user and current_user.role == 'admin' %}<a href="/admin">后台管理</a>{% endif %}
+  </div>
+  <div class="user">
+    <span>{{ current_user.username }}</span>
+    <span class="role">{{ role_name(current_user.role) }}</span>
+    <a class="logout" href="/logout">退出</a>
+  </div>
+</div>
+
+<div class="container">
+  <!-- 筛选条件条 -->
+  <div class="card">
+    <div class="card-title">多维度筛选条件（图表联动刷新）</div>
+    <div class="form-row" id="filterBar">
+      <div class="form-item">
+        <label>地区</label>
+        <select id="f_region">
+          <option value="all">全部地区</option>
+          {% for r in REGIONS %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>行业</label>
+        <select id="f_industry">
+          <option value="all">全部行业</option>
+          {% for i in INDUSTRY_OPTIONS %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>学历（可胜任）</label>
+        <select id="f_edu">
+          <option value="0">不限</option>
+          {% for e in EDU_OPTIONS %}{% if e != '不限' %}<option value="{{ edu_level(e) }}">{{ e }}及以上可胜任</option>{% endif %}{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>最低月薪（元）</label>
+        <input type="number" id="f_salary" placeholder="如 5000" min="0">
+      </div>
+      <div class="form-item">
+        <label>班次</label>
+        <select id="f_shift">
+          <option value="all">全部班次</option>
+          {% for s in SHIFT_OPTIONS %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>福利标签</label>
+        <select id="f_label">
+          <option value="all">全部福利</option>
+          {% for w in WELFARE_KEYWORDS %}<option value="{{ w }}">{{ w }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-item">
+        <label>&nbsp;</label>
+        <label class="checkbox-inline"><input type="checkbox" id="f_caring"> 仅看爱心岗位</label>
+      </div>
+      <div class="form-item">
+        <label>&nbsp;</label>
+        <label class="checkbox-inline"><input type="checkbox" id="f_cert"> 持证优先岗位</label>
+      </div>
+      <div class="form-item">
+        <label>关键词</label>
+        <input type="text" id="f_keyword" placeholder="岗位/企业名">
+      </div>
+      <div class="form-item">
+        <label>&nbsp;</label>
+        <button class="btn btn-primary" onclick="applyFilters()">应用筛选</button>
+        <button class="btn btn-default" onclick="resetFilters()">重置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 指标卡片 -->
+  <div class="metric-grid">
+    <div class="metric blue">
+      <div class="icon">📊</div>
+      <div class="label">岗位总数</div>
+      <div class="value" id="m_total">0<span class="unit">个</span></div>
+    </div>
+    <div class="metric orange">
+      <div class="icon">♥</div>
+      <div class="label">爱心帮扶岗位</div>
+      <div class="value" id="m_caring">0<span class="unit">个</span></div>
+    </div>
+    <div class="metric green">
+      <div class="icon">💰</div>
+      <div class="label">8000元以上高薪岗</div>
+      <div class="value" id="m_high">0<span class="unit">个</span></div>
+    </div>
+    <div class="metric purple">
+      <div class="icon">🏠</div>
+      <div class="label">包食宿岗位</div>
+      <div class="value" id="m_food">0<span class="unit">个</span></div>
+    </div>
+  </div>
+
+  <!-- 图表 -->
+  <div class="chart-grid">
+    <div class="chart-box" style="grid-column:1 / -1">
+      <h3>各行业岗位数量对比（柱状图）</h3>
+      <div class="chart" id="chart_industry"></div>
+    </div>
+    <div class="chart-box">
+      <h3>学历分布占比（饼图）</h3>
+      <div class="chart" id="chart_edu"></div>
+    </div>
+    <div class="chart-box">
+      <h3>薪资区间分布占比（饼图）</h3>
+      <div class="chart" id="chart_salary"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
